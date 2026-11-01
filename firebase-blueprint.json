@@ -1,0 +1,403 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account and profile data on PulseX",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique user identifier"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "User full display name"
+        },
+        "nickName": {
+          "type": "string",
+          "description": "Handle starting with @"
+        },
+        "email": {
+          "type": "string",
+          "description": "User registered email"
+        },
+        "password": {
+          "type": "string",
+          "description": "User secured password"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Profile picture URL"
+        },
+        "bio": {
+          "type": "string",
+          "description": "User biography"
+        },
+        "location": {
+          "type": "string",
+          "description": "Geographical location"
+        },
+        "website": {
+          "type": "string",
+          "description": "Personal website URL"
+        },
+        "joinedAt": {
+          "type": "string",
+          "description": "ISO timestamp of registration"
+        },
+        "role": {
+          "type": "string",
+          "description": "Account role",
+          "enum": ["user", "moderator", "admin"]
+        },
+        "isVerified": {
+          "type": "boolean",
+          "description": "Verified badge"
+        },
+        "following": {
+          "type": "array",
+          "description": "Array of followed user IDs"
+        },
+        "followersCount": {
+          "type": "number",
+          "description": "Follower count"
+        },
+        "banStatus": {
+          "type": "object",
+          "description": "Moderation suspension record"
+        }
+      },
+      "required": ["id", "fullName", "nickName", "email", "password", "joinedAt"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Community timeline microblog post",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Post identifier"
+        },
+        "authorId": {
+          "type": "string",
+          "description": "User ID of creator"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Name of post author"
+        },
+        "authorHandle": {
+          "type": "string",
+          "description": "Handle of post author"
+        },
+        "authorAvatar": {
+          "type": "string",
+          "description": "Avatar URL of author"
+        },
+        "content": {
+          "type": "string",
+          "description": "Text body of the post"
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "Optional image URL attachment"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO creation timestamp"
+        },
+        "likes": {
+          "type": "array",
+          "description": "User IDs who liked"
+        },
+        "reposts": {
+          "type": "array",
+          "description": "User IDs who reposted"
+        },
+        "bookmarks": {
+          "type": "array",
+          "description": "User IDs who bookmarked"
+        },
+        "commentsCount": {
+          "type": "number",
+          "description": "Count of replies"
+        },
+        "isPinned": {
+          "type": "boolean",
+          "description": "Pinned status"
+        },
+        "isFlagged": {
+          "type": "boolean",
+          "description": "Report status"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Hashtags array"
+        },
+        "postType": {
+          "type": "string",
+          "description": "Type of post: original, repost, or quote",
+          "enum": ["original", "repost", "quote"]
+        },
+        "originalPostId": {
+          "type": "string",
+          "description": "ID of original post if repost or quote"
+        },
+        "quotedPost": {
+          "type": "object",
+          "description": "Embedded snapshot of quoted post content and author"
+        },
+        "repostedBy": {
+          "type": "object",
+          "description": "User who reposted this post"
+        }
+      },
+      "required": ["id", "authorId", "authorName", "authorHandle", "content", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Reply comment in a post thread",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Comment ID"
+        },
+        "postId": {
+          "type": "string",
+          "description": "Referenced post ID"
+        },
+        "authorId": {
+          "type": "string",
+          "description": "Commenter user ID"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Commenter full name"
+        },
+        "authorHandle": {
+          "type": "string",
+          "description": "Commenter handle"
+        },
+        "authorAvatar": {
+          "type": "string",
+          "description": "Avatar URL"
+        },
+        "content": {
+          "type": "string",
+          "description": "Comment text"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO creation timestamp"
+        },
+        "likes": {
+          "type": "array",
+          "description": "Likes on comment"
+        }
+      },
+      "required": ["id", "postId", "authorId", "authorName", "authorHandle", "content", "createdAt"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Chat conversation channel between users",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Conversation ID"
+        },
+        "participants": {
+          "type": "array",
+          "description": "Array of 2 participant user IDs"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last activity timestamp"
+        },
+        "lastMessage": {
+          "type": "object",
+          "description": "Snippet of last message"
+        }
+      },
+      "required": ["id", "participants", "updatedAt"]
+    },
+    "DirectMessage": {
+      "title": "DirectMessage",
+      "description": "Private direct message sent between users",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Message ID"
+        },
+        "conversationId": {
+          "type": "string",
+          "description": "Parent conversation ID"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "User ID of sender"
+        },
+        "receiverId": {
+          "type": "string",
+          "description": "User ID of recipient"
+        },
+        "content": {
+          "type": "string",
+          "description": "Message text"
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "Optional image URL attachment"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp"
+        },
+        "read": {
+          "type": "boolean",
+          "description": "Read receipt status"
+        }
+      },
+      "required": ["id", "conversationId", "senderId", "receiverId", "content", "createdAt"]
+    },
+    "ScheduledPost": {
+      "title": "ScheduledPost",
+      "description": "Draft post scheduled for publication at a future timestamp",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Scheduled post identifier"
+        },
+        "authorId": {
+          "type": "string",
+          "description": "User ID of creator"
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Name of post author"
+        },
+        "authorHandle": {
+          "type": "string",
+          "description": "Handle of post author"
+        },
+        "authorAvatar": {
+          "type": "string",
+          "description": "Avatar URL of author"
+        },
+        "content": {
+          "type": "string",
+          "description": "Text body of the draft"
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "Optional image URL attachment"
+        },
+        "scheduledFor": {
+          "type": "string",
+          "description": "ISO timestamp for scheduled publication"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO creation timestamp"
+        },
+        "status": {
+          "type": "string",
+          "description": "Scheduling status",
+          "enum": ["pending", "published", "cancelled"]
+        },
+        "tags": {
+          "type": "array",
+          "description": "Hashtags array"
+        }
+      },
+      "required": ["id", "authorId", "authorName", "authorHandle", "content", "scheduledFor", "createdAt", "status"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User notification for mentions and interactions",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Notification identifier"
+        },
+        "recipientId": {
+          "type": "string",
+          "description": "Recipient user ID"
+        },
+        "actorId": {
+          "type": "string",
+          "description": "Author user ID generating the mention"
+        },
+        "actorName": {
+          "type": "string",
+          "description": "Display name of mentioner"
+        },
+        "actorHandle": {
+          "type": "string",
+          "description": "Handle of mentioner"
+        },
+        "actorAvatar": {
+          "type": "string",
+          "description": "Avatar of mentioner"
+        },
+        "type": {
+          "type": "string",
+          "description": "Notification category",
+          "enum": ["mention", "like", "comment", "follow", "repost", "quote"]
+        },
+        "postId": {
+          "type": "string",
+          "description": "Related post identifier"
+        },
+        "postSnippet": {
+          "type": "string",
+          "description": "Excerpt of the post content"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp"
+        },
+        "read": {
+          "type": "boolean",
+          "description": "Whether the notification was read"
+        }
+      },
+      "required": ["id", "recipientId", "actorId", "actorName", "actorHandle", "type", "createdAt", "read"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User accounts and profile directory"
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Public community timeline posts"
+    },
+    "/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Replies to timeline posts"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "Chat channels between pairs of users"
+    },
+    "/messages/{messageId}": {
+      "schema": "DirectMessage",
+      "description": "Direct messages within chat channels"
+    },
+    "/scheduled/{scheduledId}": {
+      "schema": "ScheduledPost",
+      "description": "Draft posts scheduled for future release"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "In-app notifications including @mentions"
+    }
+  }
+}
+

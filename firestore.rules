@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection test doc
+    match /test/{testId} {
+      allow read: if true;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if true; // Allows registered users and profile updates
+      allow delete: if false;
+    }
+
+    // Posts collection
+    match /posts/{postId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if true;
+    }
+
+    // Comments collection
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    // Conversations collection
+    match /conversations/{conversationId} {
+      allow read, write: if true;
+    }
+
+    // Messages collection
+    match /messages/{messageId} {
+      allow read, write: if true;
+    }
+
+    // Scheduled Posts collection
+    match /scheduled/{scheduledId} {
+      allow read, write: if true;
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read, write: if true;
+    }
+
+    // Admin & System Settings
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
+  }
+}

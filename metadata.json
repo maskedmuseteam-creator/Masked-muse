@@ -1,0 +1,6 @@
+{
+  "name": "PulseX - Modern Social Network & Admin Portal",
+  "description": "Next-generation microblogging social platform with secure sign-up, strong password policies, OTP email verification, and a dedicated executive moderation and ban admin suite.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
