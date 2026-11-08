@@ -57,6 +57,7 @@ interface SettingsViewProps {
   onRequestAuth: () => void;
   onUserUpdated: (user: User) => void;
   onNavigateProfile: () => void;
+  onOpenAdmin?: () => void;
 }
 
 type SettingsTab =
@@ -74,6 +75,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onRequestAuth,
   onUserUpdated,
   onNavigateProfile,
+  onOpenAdmin,
 }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>(() => {
     if (initialTab === 'settings') return 'app_settings';
@@ -1636,6 +1638,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             )}
           </div>
+
+          {/* Platform Admin Console Access */}
+          {onOpenAdmin && (
+            <div className="pt-4 border-t border-slate-800/80">
+              <div className="p-4 bg-red-950/20 border border-red-500/30 rounded-2xl flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2.5 rounded-xl bg-red-500/20 text-red-400 shrink-0">
+                    <Shield className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-red-300 flex items-center gap-2">
+                      <span>Executive Admin Portal</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 bg-red-500/20 text-red-300 rounded border border-red-500/30">
+                        Ctrl+Shift+M or Alt+M
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-400 truncate">
+                      Manage suspensions, review audit trails, inspect users, and manage scheduled posts.
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={onOpenAdmin}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
+                >
+                  Open Portal
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

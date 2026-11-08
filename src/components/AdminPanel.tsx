@@ -86,20 +86,36 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
   const [broadcastText, setBroadcastText] = useState('');
   const [broadcastSuccess, setBroadcastSuccess] = useState<string | null>(null);
 
-  // Keyboard shortcut Ctrl+Shift+M to toggle/exit Admin Panel
+  // Keyboard shortcut Ctrl+Shift+M, Cmd+Shift+M, Ctrl+M, Alt+M to toggle/exit Admin Panel
   useEffect(() => {
     const handleShortcut = (e: KeyboardEvent) => {
+      const key = (e.key || '').toLowerCase();
+      const code = e.code || '';
+      const isM = key === 'm' || code === 'KeyM' || e.keyCode === 77;
+      const isA = key === 'a' || code === 'KeyA' || e.keyCode === 65;
+      const hasCtrl = e.ctrlKey || e.metaKey;
+      const hasShift = e.shiftKey;
+      const hasAlt = e.altKey;
+
       if (
-        (e.ctrlKey || e.metaKey) &&
-        e.shiftKey &&
-        (e.key === 'm' || e.key === 'M' || e.code === 'KeyM')
+        (hasCtrl && hasShift && isM) ||
+        (hasCtrl && hasAlt && isM) ||
+        (hasAlt && hasShift && isM) ||
+        (hasCtrl && isM) ||
+        (hasAlt && isM) ||
+        (hasCtrl && hasShift && isA) ||
+        (hasAlt && isA)
       ) {
         e.preventDefault();
         onExitAdmin();
       }
     };
-    window.addEventListener('keydown', handleShortcut);
-    return () => window.removeEventListener('keydown', handleShortcut);
+    window.addEventListener('keydown', handleShortcut, true);
+    document.addEventListener('keydown', handleShortcut, true);
+    return () => {
+      window.removeEventListener('keydown', handleShortcut, true);
+      document.removeEventListener('keydown', handleShortcut, true);
+    };
   }, [onExitAdmin]);
 
   const refreshData = () => {

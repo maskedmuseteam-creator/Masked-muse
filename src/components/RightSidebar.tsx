@@ -157,6 +157,15 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           <a href="#terms" className="hover:underline">Terms of Service</a>
           <a href="#privacy" className="hover:underline">Privacy Policy</a>
           <a href="#safety" className="hover:underline">Safety Guidelines</a>
+          {onOpenAdmin && (
+            <button
+              onClick={onOpenAdmin}
+              className="hover:underline text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+              title="Admin Portal (Shortcut: Ctrl+Shift+M or Alt+M or type 'admin')"
+            >
+              Admin Portal
+            </button>
+          )}
         </div>
         <p>© 2026 PulseX Platform Inc. All rights reserved.</p>
       </div>

@@ -231,7 +231,8 @@ export default function App() {
       }
     };
 
-    // Global shortcut: Ctrl+Shift+M, Cmd+Shift+M, Alt+Shift+M, Ctrl+M, Ctrl+Shift+A to toggle Admin Access Point
+    // Global shortcut: Ctrl+Shift+M, Cmd+Shift+M, Alt+Shift+M, Ctrl+M, Alt+M, Ctrl+Shift+A, or typing "admin"
+    let typedBuffer = '';
     const adminShortcutHandler = (e: KeyboardEvent) => {
       const key = (e.key || '').toLowerCase();
       const code = e.code || '';
@@ -241,35 +242,70 @@ export default function App() {
       const hasShift = e.shiftKey;
       const hasAlt = e.altKey;
 
+      // 1. Direct hotkey check (Ctrl+Shift+M, Cmd+Shift+M, Alt+Shift+M, Ctrl+M, Alt+M, Ctrl+Shift+A, Alt+A)
       if (
         (hasCtrl && hasShift && isM) ||
         (hasCtrl && hasAlt && isM) ||
         (hasAlt && hasShift && isM) ||
         (hasCtrl && isM) ||
-        (hasCtrl && hasShift && isA)
+        (hasAlt && isM) ||
+        (hasCtrl && hasShift && isA) ||
+        (hasAlt && isA)
       ) {
         e.preventDefault();
         e.stopPropagation();
-        setShowAdminAccessPoint((prev) => {
-          const next = !prev;
-          setShortcutFeedback(
-            next
-              ? 'Admin Access Point Revealed! Click "Admin Portal" in navigation to enter.'
-              : 'Admin Access Point hidden.'
-          );
+        setViewMode((prev) => {
+          const next = prev === 'admin' ? 'public' : 'admin';
+          if (next === 'admin') {
+            window.history.replaceState({}, '', '?admin=true');
+            setShortcutFeedback('Admin Panel Activated');
+          } else {
+            window.history.replaceState({}, '', window.location.pathname);
+            setShortcutFeedback('Returned to Public Feed');
+            reloadData();
+          }
           return next;
         });
+        setShowAdminAccessPoint(true);
+        return;
+      }
+
+      // 2. Secret typing sequence "admin" when not inside an input or textarea
+      const target = e.target as HTMLElement | null;
+      const isInput =
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable);
+
+      if (!isInput && key && key.length === 1) {
+        typedBuffer = (typedBuffer + key).slice(-8);
+        if (typedBuffer.includes('admin')) {
+          typedBuffer = '';
+          setViewMode('admin');
+          setShowAdminAccessPoint(true);
+          window.history.replaceState({}, '', '?admin=true');
+          setShortcutFeedback('Admin Panel Activated');
+        }
       }
     };
 
     // Attach to global window for developer console access
     (window as any).openAdmin = () => {
       setViewMode('admin');
+      setShowAdminAccessPoint(true);
       window.history.replaceState({}, '', '?admin=true');
     };
     (window as any).toggleAdminAccessPoint = () => {
       setShowAdminAccessPoint((prev) => !prev);
     };
+
+    // Ensure window receives focus on mount and click
+    window.focus();
+    const handleDocumentClick = () => {
+      window.focus();
+    };
+    document.addEventListener('click', handleDocumentClick);
 
     window.addEventListener('pulsex-message-updated', messageHandler);
     window.addEventListener('pulsex-notification-updated', notifHandler);
@@ -278,6 +314,7 @@ export default function App() {
     window.addEventListener('pulsex-settings-updated', settingsHandler);
     window.addEventListener('keydown', adminShortcutHandler, true);
     document.addEventListener('keydown', adminShortcutHandler, true);
+    document.documentElement.addEventListener('keydown', adminShortcutHandler, true);
 
     return () => {
       clearInterval(scheduleInterval);
@@ -285,6 +322,7 @@ export default function App() {
       unsubUsers();
       unsubScheduled();
       unsubNotifications();
+      document.removeEventListener('click', handleDocumentClick);
       window.removeEventListener('pulsex-message-updated', messageHandler);
       window.removeEventListener('pulsex-notification-updated', notifHandler);
       window.removeEventListener('pulsex-scheduled-updated', scheduledHandler);
@@ -292,6 +330,7 @@ export default function App() {
       window.removeEventListener('pulsex-settings-updated', settingsHandler);
       window.removeEventListener('keydown', adminShortcutHandler, true);
       document.removeEventListener('keydown', adminShortcutHandler, true);
+      document.documentElement.removeEventListener('keydown', adminShortcutHandler, true);
     };
   }, []);
 
@@ -526,6 +565,7 @@ export default function App() {
                 reloadData();
               }}
               onNavigateProfile={() => handleOpenFullProfile()}
+              onOpenAdmin={handleEnterAdmin}
             />
           </main>
         ) : (
