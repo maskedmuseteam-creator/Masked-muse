@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Home,
   Hash,
   Bookmark,
   MessageSquare,
   User as UserIcon,
-  Shield,
   Feather,
   LogOut,
   LogIn,
@@ -27,7 +26,7 @@ interface NavbarProps {
   onNavChange: (nav: NavTab) => void;
   onOpenAuth: (initialTab: 'login' | 'signup') => void;
   onLogout: () => void;
-  onOpenAdmin: () => void;
+  onOpenAdmin?: () => void;
   onOpenProfile: (handle: string) => void;
   onRequestNewPost: () => void;
   onOpenScheduledModal?: () => void;
@@ -47,15 +46,44 @@ export const Navbar: React.FC<NavbarProps> = ({
   onRequestNewPost,
   onOpenScheduledModal,
 }) => {
+  const logoClicksRef = useRef(0);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [logoPinging, setLogoPinging] = useState(false);
+
+  const handleLogoSecretClick = () => {
+    logoClicksRef.current += 1;
+    if (logoClicksRef.current >= 3) {
+      logoClicksRef.current = 0;
+      setLogoPinging(false);
+      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+      if (onOpenAdmin) onOpenAdmin();
+      return;
+    }
+
+    setLogoPinging(true);
+    if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+    clickTimeoutRef.current = setTimeout(() => {
+      logoClicksRef.current = 0;
+      setLogoPinging(false);
+    }, 1800);
+  };
+
   return (
     <>
       {/* Desktop Left Navigation Rail */}
       <nav className="w-64 shrink-0 hidden md:flex flex-col justify-between h-screen sticky top-0 py-5 px-3 border-r border-slate-800/80 bg-slate-950/70 select-none">
         <div className="space-y-6">
-          {/* Brand Logo */}
-          <div className="flex items-center gap-3 px-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-lg shadow-lg shadow-blue-500/20">
+          {/* Brand Logo - Secret 3-click trigger to access Admin */}
+          <div
+            onClick={handleLogoSecretClick}
+            className="flex items-center gap-3 px-3 cursor-pointer group select-none"
+            title="PulseX Decentral Network"
+          >
+            <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-lg shadow-lg shadow-blue-500/20 group-hover:scale-105 active:scale-95 transition-transform relative">
               ⚡
+              {logoPinging && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" />
+              )}
             </div>
             <div>
               <span className="text-xl font-bold tracking-tight text-white block">PulseX</span>
@@ -190,15 +218,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </button>
             )}
-
-            {/* Admin Portal Shortcut */}
-            <button
-              onClick={onOpenAdmin}
-              className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl font-semibold text-sm text-red-400 hover:bg-red-500/10 transition-all group"
-            >
-              <Shield className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform" />
-              <span>Admin Portal</span>
-            </button>
           </div>
 
           {/* New Post Primary Button */}

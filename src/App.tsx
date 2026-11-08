@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Sparkles,
   Users,
   Search,
   Filter,
-  Shield,
   Feather,
   RefreshCw,
   LogOut,
@@ -78,6 +77,29 @@ export default function App() {
 
   // Scheduled posts queue
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
+
+  // Secret 3-click trigger on mobile header logo
+  const mobileLogoClicksRef = useRef(0);
+  const mobileClickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [mobileLogoPinging, setMobileLogoPinging] = useState(false);
+
+  const handleMobileLogoClick = () => {
+    mobileLogoClicksRef.current += 1;
+    if (mobileLogoClicksRef.current >= 3) {
+      mobileLogoClicksRef.current = 0;
+      setMobileLogoPinging(false);
+      if (mobileClickTimeoutRef.current) clearTimeout(mobileClickTimeoutRef.current);
+      handleEnterAdmin();
+      return;
+    }
+
+    setMobileLogoPinging(true);
+    if (mobileClickTimeoutRef.current) clearTimeout(mobileClickTimeoutRef.current);
+    mobileClickTimeoutRef.current = setTimeout(() => {
+      mobileLogoClicksRef.current = 0;
+      setMobileLogoPinging(false);
+    }, 1800);
+  };
 
   // Initialize and load
   const reloadData = () => {
@@ -211,10 +233,58 @@ export default function App() {
       setPosts(getAllPosts());
     };
 
+    const settingsHandler = () => {
+      const u = getCurrentUser();
+      if (u) {
+        setUserSettings(getUserSettings(u.id));
+      }
+    };
+
+    // Global shortcut: Ctrl+Shift+M, Cmd+Shift+M, Ctrl+M, Alt+Shift+M, Ctrl+Shift+A to open/toggle Admin Panel
+    const adminShortcutHandler = (e: KeyboardEvent) => {
+      const key = (e.key || '').toLowerCase();
+      const code = e.code || '';
+      const isM = key === 'm' || code === 'KeyM' || e.keyCode === 77 || e.which === 77;
+      const isA = key === 'a' || code === 'KeyA' || e.keyCode === 65 || e.which === 65;
+      const hasCtrl = e.ctrlKey || e.metaKey;
+      const hasShift = e.shiftKey;
+      const hasAlt = e.altKey;
+
+      if (
+        (hasCtrl && hasShift && isM) ||
+        (hasCtrl && hasAlt && isM) ||
+        (hasAlt && hasShift && isM) ||
+        (hasCtrl && isM) ||
+        (hasCtrl && hasShift && isA)
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        setViewMode((prev) => {
+          const next = prev === 'admin' ? 'public' : 'admin';
+          if (next === 'admin') {
+            window.history.replaceState({}, '', '?admin=true');
+          } else {
+            window.history.replaceState({}, '', window.location.pathname);
+            reloadData();
+          }
+          return next;
+        });
+      }
+    };
+
+    // Attach to global window for developer console access
+    (window as any).openAdmin = () => {
+      setViewMode('admin');
+      window.history.replaceState({}, '', '?admin=true');
+    };
+
     window.addEventListener('pulsex-message-updated', messageHandler);
     window.addEventListener('pulsex-notification-updated', notifHandler);
     window.addEventListener('pulsex-scheduled-updated', scheduledHandler);
     window.addEventListener('pulsex-post-published', postPublishedHandler);
+    window.addEventListener('pulsex-settings-updated', settingsHandler);
+    window.addEventListener('keydown', adminShortcutHandler, true);
+    document.addEventListener('keydown', adminShortcutHandler, true);
 
     return () => {
       clearInterval(scheduleInterval);
@@ -226,6 +296,9 @@ export default function App() {
       window.removeEventListener('pulsex-notification-updated', notifHandler);
       window.removeEventListener('pulsex-scheduled-updated', scheduledHandler);
       window.removeEventListener('pulsex-post-published', postPublishedHandler);
+      window.removeEventListener('pulsex-settings-updated', settingsHandler);
+      window.removeEventListener('keydown', adminShortcutHandler, true);
+      document.removeEventListener('keydown', adminShortcutHandler, true);
     };
   }, []);
 
@@ -325,23 +398,21 @@ export default function App() {
 
       {/* Top Mobile / Tablet Header */}
       <header className="md:hidden sticky top-0 z-30 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm">
+        <div
+          onClick={handleMobileLogoClick}
+          className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform select-none"
+          title="PulseX"
+        >
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm relative">
             ⚡
+            {mobileLogoPinging && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
+            )}
           </div>
           <span className="font-bold text-base tracking-tight text-white">PulseX</span>
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleEnterAdmin}
-            className="p-1.5 text-xs text-red-400 bg-red-950/40 border border-red-800/30 rounded-lg flex items-center gap-1"
-            title="Open Admin Suite"
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline font-mono">Admin</span>
-          </button>
-
           {currentUser ? (
             <button
               onClick={() => setViewProfileHandle(currentUser.nickName)}

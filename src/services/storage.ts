@@ -431,6 +431,7 @@ export function updateUserSettings(userId: string, updates: Partial<UserSettings
   };
   localStorage.setItem(`${STORAGE_KEYS.SETTINGS}_${userId}`, JSON.stringify(updated));
   addActivationLog(userId, 'Settings preferences saved', 'success');
+  window.dispatchEvent(new CustomEvent('pulsex-settings-updated', { detail: updated }));
   return updated;
 }
 

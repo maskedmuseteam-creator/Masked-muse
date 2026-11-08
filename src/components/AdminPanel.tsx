@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Shield,
   Users,
@@ -83,9 +83,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
   const [emailConfig, setEmailConfig] = useState<EmailJsSettings>(() => getEmailJsConfig());
   const [emailConfigSaved, setEmailConfigSaved] = useState(false);
 
-  // Broadcast state
   const [broadcastText, setBroadcastText] = useState('');
   const [broadcastSuccess, setBroadcastSuccess] = useState<string | null>(null);
+
+  // Keyboard shortcut Ctrl+Shift+M to toggle/exit Admin Panel
+  useEffect(() => {
+    const handleShortcut = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.shiftKey &&
+        (e.key === 'm' || e.key === 'M' || e.code === 'KeyM')
+      ) {
+        e.preventDefault();
+        onExitAdmin();
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, [onExitAdmin]);
 
   const refreshData = () => {
     setUsers(getAllUsers());
@@ -302,7 +317,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
           </form>
 
           <div className="mt-6 pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-            <span>Client Protected Gateway</span>
+            <span className="font-mono text-[11px] text-slate-400 flex items-center gap-1">
+              Toggle: <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] text-slate-300">Ctrl+Shift+M</kbd>
+            </span>
             <button
               onClick={onExitAdmin}
               className="text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
@@ -349,9 +366,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onExitAdmin }) => {
           <button
             onClick={onExitAdmin}
             className="px-3.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg transition-colors flex items-center gap-1.5"
+            title="Return to public app (Ctrl+Shift+M)"
           >
             <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
             <span>Public Feed</span>
+            <kbd className="hidden md:inline text-[10px] text-slate-500 font-mono">Ctrl+Shift+M</kbd>
           </button>
           <button
             onClick={handleAdminLogout}

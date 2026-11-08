@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, TrendingUp, ShieldAlert, Check, MessageSquare } from 'lucide-react';
+import { Search, TrendingUp, Check, MessageSquare } from 'lucide-react';
 import { User } from '../types';
 import { getAllUsers } from '../services/storage';
 
@@ -9,7 +9,7 @@ interface RightSidebarProps {
   selectedTag: string | null;
   onTagSelect: (tag: string | null) => void;
   currentUser: User | null;
-  onOpenAdmin: () => void;
+  onOpenAdmin?: () => void;
   onOpenProfile: (handle: string) => void;
   onRequestAuth: () => void;
   onStartMessageWithUser?: (userId: string) => void;
@@ -62,31 +62,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             </button>
           )}
         </div>
-      </div>
-
-      {/* Admin Panel Quick Access Banner */}
-      <div className="p-4 bg-gradient-to-br from-red-950/40 to-slate-900 border border-red-500/20 rounded-2xl">
-        <div className="flex items-center gap-2 text-xs font-bold text-red-400 mb-1">
-          <ShieldAlert className="w-4 h-4" />
-          <span>Executive Admin Suite</span>
-        </div>
-        <p className="text-[11px] text-slate-400 mb-3 leading-relaxed">
-          Full moderation suite with user monitoring, post deletion, and temporary/permanent ban controls.
-        </p>
-        <div className="p-2 bg-slate-950/70 border border-slate-800 rounded-lg text-[11px] font-mono text-slate-300 mb-3 space-y-0.5">
-          <div>
-            ID: <span className="text-white font-semibold">Rahin</span>
-          </div>
-          <div>
-            Pass: <span className="text-white font-semibold">rahin5566</span>
-          </div>
-        </div>
-        <button
-          onClick={onOpenAdmin}
-          className="w-full py-2 px-3 bg-red-600 hover:bg-red-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-red-600/20 transition-all flex items-center justify-center gap-1.5"
-        >
-          <span>Open Dedicated Admin App</span>
-        </button>
       </div>
 
       {/* Trending Topics */}

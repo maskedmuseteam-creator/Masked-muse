@@ -631,8 +631,9 @@ export const FullProfileView: React.FC<FullProfileViewProps> = ({
             <span>Likes ({likedPosts.length})</span>
           </button>
         </div>
+      </div>
 
-        <div className="space-y-3">
+      <div className="space-y-3">
           {activeTab === 'posts' && (
             userPosts.length === 0 ? (
               <div className="p-12 text-center bg-slate-900/30 border border-slate-800/80 rounded-2xl">
