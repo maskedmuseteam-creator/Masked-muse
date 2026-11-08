@@ -10,6 +10,8 @@ import {
   UserPlus,
   LogIn,
   Share2,
+  Shield,
+  X,
 } from 'lucide-react';
 import { User, Post, ScheduledPost, UserSettings } from './types';
 import {
@@ -78,28 +80,17 @@ export default function App() {
   // Scheduled posts queue
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
 
-  // Secret 3-click trigger on mobile header logo
-  const mobileLogoClicksRef = useRef(0);
-  const mobileClickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [mobileLogoPinging, setMobileLogoPinging] = useState(false);
+  // Admin access point revealed via Ctrl + Shift + M
+  const [showAdminAccessPoint, setShowAdminAccessPoint] = useState<boolean>(false);
+  const [shortcutFeedback, setShortcutFeedback] = useState<string | null>(null);
 
-  const handleMobileLogoClick = () => {
-    mobileLogoClicksRef.current += 1;
-    if (mobileLogoClicksRef.current >= 3) {
-      mobileLogoClicksRef.current = 0;
-      setMobileLogoPinging(false);
-      if (mobileClickTimeoutRef.current) clearTimeout(mobileClickTimeoutRef.current);
-      handleEnterAdmin();
-      return;
+  // Auto-dismiss shortcut notification toast after 4s
+  useEffect(() => {
+    if (shortcutFeedback) {
+      const timer = setTimeout(() => setShortcutFeedback(null), 4000);
+      return () => clearTimeout(timer);
     }
-
-    setMobileLogoPinging(true);
-    if (mobileClickTimeoutRef.current) clearTimeout(mobileClickTimeoutRef.current);
-    mobileClickTimeoutRef.current = setTimeout(() => {
-      mobileLogoClicksRef.current = 0;
-      setMobileLogoPinging(false);
-    }, 1800);
-  };
+  }, [shortcutFeedback]);
 
   // Initialize and load
   const reloadData = () => {
@@ -240,7 +231,7 @@ export default function App() {
       }
     };
 
-    // Global shortcut: Ctrl+Shift+M, Cmd+Shift+M, Ctrl+M, Alt+Shift+M, Ctrl+Shift+A to open/toggle Admin Panel
+    // Global shortcut: Ctrl+Shift+M, Cmd+Shift+M, Alt+Shift+M, Ctrl+M, Ctrl+Shift+A to toggle Admin Access Point
     const adminShortcutHandler = (e: KeyboardEvent) => {
       const key = (e.key || '').toLowerCase();
       const code = e.code || '';
@@ -259,14 +250,13 @@ export default function App() {
       ) {
         e.preventDefault();
         e.stopPropagation();
-        setViewMode((prev) => {
-          const next = prev === 'admin' ? 'public' : 'admin';
-          if (next === 'admin') {
-            window.history.replaceState({}, '', '?admin=true');
-          } else {
-            window.history.replaceState({}, '', window.location.pathname);
-            reloadData();
-          }
+        setShowAdminAccessPoint((prev) => {
+          const next = !prev;
+          setShortcutFeedback(
+            next
+              ? 'Admin Access Point Revealed! Click "Admin Portal" in navigation to enter.'
+              : 'Admin Access Point hidden.'
+          );
           return next;
         });
       }
@@ -276,6 +266,9 @@ export default function App() {
     (window as any).openAdmin = () => {
       setViewMode('admin');
       window.history.replaceState({}, '', '?admin=true');
+    };
+    (window as any).toggleAdminAccessPoint = () => {
+      setShowAdminAccessPoint((prev) => !prev);
     };
 
     window.addEventListener('pulsex-message-updated', messageHandler);
@@ -398,21 +391,25 @@ export default function App() {
 
       {/* Top Mobile / Tablet Header */}
       <header className="md:hidden sticky top-0 z-30 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 flex items-center justify-between">
-        <div
-          onClick={handleMobileLogoClick}
-          className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform select-none"
-          title="PulseX"
-        >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm relative">
+        <div className="flex items-center gap-2 select-none" title="PulseX">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-blue-500/20">
             ⚡
-            {mobileLogoPinging && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping" />
-            )}
           </div>
           <span className="font-bold text-base tracking-tight text-white">PulseX</span>
         </div>
 
         <div className="flex items-center gap-2">
+          {showAdminAccessPoint && (
+            <button
+              onClick={handleEnterAdmin}
+              className="px-2.5 py-1 text-xs font-semibold text-red-400 bg-red-950/60 border border-red-500/40 hover:bg-red-900/40 rounded-lg flex items-center gap-1.5 transition-all shadow-sm shadow-red-500/20 animate-pulse"
+              title="Open Admin Portal"
+            >
+              <Shield className="w-3.5 h-3.5 text-red-400" />
+              <span>Admin Portal</span>
+            </button>
+          )}
+
           {currentUser ? (
             <button
               onClick={() => setViewProfileHandle(currentUser.nickName)}
@@ -444,6 +441,7 @@ export default function App() {
           activeNav={activeNav}
           unreadCount={unreadCount}
           unreadNotificationsCount={unreadNotificationsCount}
+          showAdminAccessPoint={showAdminAccessPoint}
           scheduledCount={
             currentUser
               ? scheduledPosts.filter((p) => p.authorId === currentUser.id && p.status === 'pending').length
@@ -774,6 +772,47 @@ export default function App() {
       scheduledPosts={scheduledPosts}
       onUpdated={reloadData}
     />
+
+    {/* Floating Admin Access Point Indicator Card when Ctrl+Shift+M is triggered */}
+    {showAdminAccessPoint && (
+      <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-50 flex items-center gap-3 bg-slate-900/95 border border-red-500/50 text-white px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom duration-200">
+        <div className="p-2 rounded-xl bg-red-500/20 text-red-400 shrink-0">
+          <Shield className="w-5 h-5" />
+        </div>
+        <div className="pr-1">
+          <div className="text-xs font-bold text-red-300 flex items-center gap-1.5">
+            <span>Admin Access Point Active</span>
+            <span className="px-1.5 py-0.5 text-[9px] bg-red-500/20 border border-red-500/30 rounded font-mono text-red-300">
+              Ctrl+Shift+M
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-300">
+            Admin Portal shortcut revealed in navigation rail.
+          </div>
+        </div>
+        <button
+          onClick={handleEnterAdmin}
+          className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-md transition-all shrink-0 cursor-pointer"
+        >
+          Enter Portal
+        </button>
+        <button
+          onClick={() => setShowAdminAccessPoint(false)}
+          className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors shrink-0 ml-1 cursor-pointer"
+          title="Hide Access Point"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    )}
+
+    {/* Ephemeral Feedback Toast on Shortcut Trigger */}
+    {shortcutFeedback && (
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 border border-slate-700 text-white px-4 py-2 rounded-full shadow-2xl backdrop-blur-md flex items-center gap-2 text-xs font-medium pointer-events-none animate-in fade-in slide-in-from-top duration-150">
+        <Shield className="w-4 h-4 text-red-400" />
+        <span>{shortcutFeedback}</span>
+      </div>
+    )}
   </div>
 );
 }
